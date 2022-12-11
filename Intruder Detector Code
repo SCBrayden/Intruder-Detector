@@ -1,0 +1,61 @@
+#include <LiquidCrystal.h>
+
+const int rs = 12, en = 11, d4 = 5, d5 = 4, d6 = 13, d7 = 2;
+LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
+
+const int TRIG_PIN = 6; // Arduino pin connected to Ultrasonic Sensor's TRIG pin
+const int ECHO_PIN = 7; // Arduino pin connected to Ultrasonic Sensor's ECHO pin
+const int LED_PIN  = 3; // Arduino pin connected to LED's pin
+const int DISTANCE_THRESHOLD = 10; // centimeters
+const int buzzer = 9;
+
+// variables will change:
+float duration_us, distance_cm;
+
+void setup() {
+  Serial.begin(9600);       // initialize serial port
+  pinMode(buzzer, OUTPUT); // Set buzzer - pin 9 as an output
+  pinMode(TRIG_PIN, OUTPUT); // set arduino pin to output mode
+  pinMode(ECHO_PIN, INPUT);  // set arduino pin to input mode
+  pinMode(LED_PIN, OUTPUT);  // set arduino pin to output mode
+}
+
+void loop() {
+  // generate 10-microsecond pulse to TRIG pin
+  digitalWrite(TRIG_PIN, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(TRIG_PIN, LOW);
+
+  // measure duration of pulse from ECHO pin
+  duration_us = pulseIn(ECHO_PIN, HIGH);
+  // calculate the distance
+  distance_cm = 0.017 * duration_us;
+
+  if(distance_cm < DISTANCE_THRESHOLD)
+    digitalWrite(LED_PIN, HIGH);  // turn the LED on (HIGH is the voltage level)
+    delay(250);                      // wait for a second
+    digitalWrite(LED_PIN, LOW);   // turn the LED off by making the voltage LOW
+    delay(250);
+  
+  if(distance_cm < DISTANCE_THRESHOLD){
+    tone(buzzer, 1000);
+    delay(500);        // ...for 1 sec
+    noTone(buzzer);     // Stop sound...
+    delay(500);        // ...for 1sec
+  }
+
+  if(distance_cm < DISTANCE_THRESHOLD){
+    // set up the LCD's number of columns and rows:
+  lcd.begin(16, 1);
+  // Print a message to the LCD.
+  lcd.print("Intruder!!!");
+  }
+
+
+  // print the value to Serial Monitor
+  Serial.print("distance: ");
+  Serial.print(distance_cm);
+  Serial.println(" cm");
+
+  delay(500);
+}
